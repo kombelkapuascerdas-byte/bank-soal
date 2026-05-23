@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Bank Soal CBT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .option-btn {
+            transition: all 0.2s ease;
+        }
+        .option-btn:hover {
+            transform: translateY(-2px);
+        }
+        .option-selected {
+            background-color: #3b82f6 !important;
+            color: white !important;
+            border-color: #2563eb !important;
+        }
+    </style>
+</head>
+<body class="text-gray-800 h-screen flex flex-col items-center justify-center p-4">
+
+    <div id="app-container" class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden relative">
+        
+        <!-- Header -->
+        <div class="bg-blue-600 text-white p-6 text-center">
+            <h1 class="text-2xl font-bold">CBT Sekolah V1.0</h1>
+            <p class="text-blue-100 text-sm mt-1">Sistem Ujian Online</p>
+        </div>
+
+        <div class="p-6 md:p-8 min-h-[400px] flex flex-col">
+            
+            <!-- Layar 1: Halaman Awal -->
+            <div id="home-screen" class="flex flex-col items-center justify-center flex-1 text-center">
+                <div class="bg-blue-50 w-20 h-20 rounded-full flex items-center justify-center mb-6">
+                    <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-xl font-bold mb-2">Siap untuk Ujian?</h2>
+                <p class="text-gray-500 mb-8 max-w-md">Pastikan koneksi internet stabil. Waktu akan terus berjalan setelah Anda menekan tombol mulai.</p>
+                
+                <!-- Input Nama Siswa -->
+                <input type="text" id="student-name" placeholder="Masukkan Nama Lengkap Anda" class="w-full max-w-xs px-4 py-3 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                
+                <button onclick="startTest()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg shadow-md transition-colors w-full max-w-xs">
+                    Mulai Kerjakan
+                </button>
+                <p id="error-msg" class="text-red-500 text-sm mt-3 hidden">Silakan masukkan nama Anda terlebih dahulu!</p>
+            </div>
+
+            <!-- Layar 2: Halaman Soal -->
+            <div id="quiz-screen" class="hidden flex-col flex-1">
+                <!-- Progress Bar & Timer -->
+                <div class="flex justify-between items-center mb-6 text-sm font-semibold text-gray-500">
+                    <span id="question-tracker">Soal 1 dari 10</span>
+                    <span class="flex items-center text-blue-600">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span id="timer">Aktif</span>
+                    </span>
+                </div>
+                
+                <div class="w-full bg-gray-200 rounded-full h-2 mb-8">
+                    <div id="progress-bar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+
+                <!-- Kontainer Pertanyaan -->
+                <div class="flex-1">
+                    <h3 id="question-text" class="text-lg font-medium text-gray-800 mb-6 leading-relaxed">
+                        Memuat pertanyaan...
+                    </h3>
+
+                    <!-- Pilihan Ganda -->
+                    <div class="space-y-3" id="options-container">
+                        <!-- Tombol opsi akan digenerate dari JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Navigasi Bawah -->
+                <div class="flex justify-between mt-8 pt-4 border-t border-gray-100">
+                    <button onclick="prevQuestion()" id="btn-prev" class="px-6 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed">
+                        Sebelumnya
+                    </button>
+                    <button onclick="nextQuestion()" id="btn-next" class="px-6 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition">
+                        Selanjutnya
+                    </button>
+                    <button onclick="finishTest()" id="btn-finish" class="hidden px-6 py-2 text-white bg-green-500 hover:bg-green-600 rounded-lg font-medium transition">
+                        Selesai & Kirim
+                    </button>
+                </div>
+            </div>
+
+            <!-- Layar 3: Halaman Hasil/Skor -->
+            <div id="result-screen" class="hidden flex-col items-center justify-center flex-1 text-center py-8">
+                <div class="w-24 h-24 mb-6 relative">
+                    <!-- Lingkaran Animasi Skor -->
+                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                        <path class="text-gray-200" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path id="score-circle" class="text-green-500 transition-all duration-1000 ease-out" stroke-dasharray="0, 100" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <span id="final-score" class="text-3xl font-bold text-gray-800">0</span>
+                    </div>
+                </div>
+                
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Ujian Selesai!</h2>
+                <p id="student-result-name" class="text-gray-500 mb-6">Terima kasih telah mengerjakan.</p>
+                
+                <div class="bg-gray-50 rounded-lg p-4 w-full max-w-xs flex justify-between items-center mb-8 border border-gray-100">
+                    <div class="text-center">
+                        <p class="text-xs text-gray-500 uppercase tracking-wider">Benar</p>
+                        <p id="correct-count" class="text-lg font-bold text-green-600">0</p>
+                    </div>
+                    <div class="w-px h-8 bg-gray-200"></div>
+                    <div class="text-center">
+                        <p class="text-xs text-gray-500 uppercase tracking-wider">Salah</p>
+                        <p id="wrong-count" class="text-lg font-bold text-red-500">0</p>
+                    </div>
+                </div>
+
+                <button onclick="location.reload()" class="text-blue-600 font-medium hover:underline">
+                    Kembali ke Beranda
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modul Supabase (CDN) -->
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+        // ==========================================
+        // 1. KONFIGURASI SUPABASE (OPSIONAL)
+        // ==========================================
+        // Jika Anda sudah punya akun Supabase, masukkan URL dan KEY di sini:
+        const SUPABASE_URL = 'https://cjqerkjjovqveqxdfaxt.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqcWVya2pqb3ZxdmVxeGRmYXh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTU5MzA5MjYsImV4cCI6MjAzMTUwNjkzMn0.OvteJOFoUIJb5qLbP8nv0hOXeqMNV_c2j2T5cp8e7-Y'; 
+        
+        let supabase = null;
+        if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+            supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }
+
+        // ==========================================
+        // 2. DATA DUMMY (FALLBACK JIKA TANPA SUPABASE)
+        // ==========================================
+        const dummyQuestions = [
+            { id: 1, pertanyaan: "Apa ibu kota negara Indonesia?", opsi_a: "Bandung", opsi_b: "Nusantara", opsi_c: "Jakarta", opsi_d: "Surabaya", kunci_jawaban: "c" },
+            { id: 2, pertanyaan: "Berapakah hasil dari 15 x 3?", opsi_a: "40", opsi_b: "45", opsi_c: "50", opsi_d: "55", kunci_jawaban: "b" },
+            { id: 3, pertanyaan: "Siapakah penemu bola lampu pijar?", opsi_a: "Thomas Edison", opsi_b: "Nikola Tesla", opsi_c: "Albert Einstein", opsi_d: "Isaac Newton", kunci_jawaban: "a" },
+            { id: 4, pertanyaan: "Planet manakah yang dikenal sebagai Planet Merah?", opsi_a: "Venus", opsi_b: "Jupiter", opsi_c: "Saturnus", opsi_d: "Mars", kunci_jawaban: "d" },
+            { id: 5, pertanyaan: "Bahasa pemrograman apa yang sering digunakan untuk membuat halaman web menjadi interaktif?", opsi_a: "Python", opsi_b: "C++", opsi_c: "JavaScript", opsi_d: "Java", kunci_jawaban: "c" }
+        ];
+
+        // ==========================================
+        // 3. STATE APLIKASI
+        // ==========================================
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let userAnswers = {}; // Format: { 0: 'a', 1: 'c', ... }
+        let studentName = "";
+
+        // Fungsi untuk mengambil soal (Dari Supabase ATAU Dummy)
+        async function fetchQuestions() {
+            if (supabase) {
+                try {
+                    // Mengambil soal dari tabel 'soal' di Supabase
+                    const { data, error } = await supabase
+                        .from('soal')
+                        .select('id, pertanyaan, opsi_a, opsi_b, opsi_c, opsi_d, kunci_jawaban');
+                    
+                    if (error) throw error;
+                    
+                    if (data && data.length > 0) {
+                        questions = data;
+                        return;
+                    }
+                } catch (err) {
+                    console.error("Gagal mengambil dari Supabase, menggunakan data fallback.", err);
+                }
+            }
+            // Fallback ke data dummy
+            questions = dummyQuestions;
+        }
+
+        // ==========================================
+        // 4. LOGIKA UI (ANTARMUKA)
+        // ==========================================
+        // Ekspos fungsi ke global scope (window) agar bisa dipanggil dari onclick HTML
+        
+        window.startTest = async function() {
+            const nameInput = document.getElementById('student-name').value.trim();
+            const errorMsg = document.getElementById('error-msg');
+            
+            if (!nameInput) {
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+            errorMsg.classList.add('hidden');
+            studentName = nameInput;
+
+            // Tampilkan state loading sementara (opsional)
+            document.getElementById('home-screen').innerHTML = '<p class="text-gray-500">Memuat soal...</p>';
+
+            // Ambil soal
+            await fetchQuestions();
+
+            // Pindah layar
+            document.getElementById('home-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            document.getElementById('quiz-screen').classList.add('flex');
+            
+            renderQuestion();
+        }
+
+        window.renderQuestion = function() {
+            const q = questions[currentQuestionIndex];
+            
+            // Update Text
+            document.getElementById('question-tracker').innerText = `Soal ${currentQuestionIndex + 1} dari ${questions.length}`;
+            document.getElementById('question-text').innerText = q.pertanyaan;
+
+            // Update Progress Bar
+            const progressPercent = ((currentQuestionIndex) / questions.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+
+            // Render Pilihan
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = ''; // Kosongkan dulu
+
+            const options = [
+                { key: 'a', text: q.opsi_a },
+                { key: 'b', text: q.opsi_b },
+                { key: 'c', text: q.opsi_c },
+                { key: 'd', text: q.opsi_d }
+            ];
+
+            options.forEach(opt => {
+                const isSelected = userAnswers[currentQuestionIndex] === opt.key;
+                const btnClass = isSelected 
+                    ? "w-full text-left p-4 rounded-xl border-2 border-blue-500 bg-blue-500 text-white font-medium option-btn transition option-selected"
+                    : "w-full text-left p-4 rounded-xl border-2 border-gray-200 bg-white text-gray-700 font-medium hover:border-blue-300 hover:bg-blue-50 option-btn transition";
+
+                optionsContainer.innerHTML += `
+                    <button onclick="selectOption('${opt.key}')" class="${btnClass}">
+                        <span class="inline-block w-6 font-bold mr-2">${opt.key.toUpperCase()}.</span> ${opt.text}
+                    </button>
+                `;
+            });
+
+            // Update Navigasi Buttons
+            document.getElementById('btn-prev').disabled = currentQuestionIndex === 0;
+            
+            if (currentQuestionIndex === questions.length - 1) {
+                document.getElementById('btn-next').classList.add('hidden');
+                document.getElementById('btn-finish').classList.remove('hidden');
+            } else {
+                document.getElementById('btn-next').classList.remove('hidden');
+                document.getElementById('btn-finish').classList.add('hidden');
+            }
+        }
+
+        window.selectOption = function(optionKey) {
+            userAnswers[currentQuestionIndex] = optionKey;
+            renderQuestion(); // Render ulang untuk efek visual terpilih
+        }
+
+        window.nextQuestion = function() {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion();
+            }
+        }
+
+        window.prevQuestion = function() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+            }
+        }
+
+        window.finishTest = async function() {
+            // Kalkulasi Skor
+            let correct = 0;
+            questions.forEach((q, index) => {
+                if (userAnswers[index] === q.kunci_jawaban) {
+                    correct++;
+                }
+            });
+
+            const total = questions.length;
+            const score = Math.round((correct / total) * 100);
+
+            // Simpan ke Supabase (Jika Dikonfigurasi)
+            if (supabase) {
+                try {
+                    await supabase.from('nilai_siswa').insert([
+                        { nama_siswa: studentName, skor: score }
+                    ]);
+                } catch (err) {
+                    console.error("Gagal menyimpan skor ke database:", err);
+                }
+            }
+
+            // Tampilkan Hasil
+            document.getElementById('quiz-screen').classList.remove('flex');
+            document.getElementById('quiz-screen').classList.add('hidden');
+            
+            document.getElementById('result-screen').classList.remove('hidden');
+            document.getElementById('result-screen').classList.add('flex');
+
+            document.getElementById('student-result-name').innerText = `${studentName}, ini adalah hasil ujianmu.`;
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('correct-count').innerText = correct;
+            document.getElementById('wrong-count').innerText = total - correct;
+
+            // Animasi Lingkaran Skor
+            setTimeout(() => {
+                document.getElementById('score-circle').style.strokeDasharray = `${score}, 100`;
+                if(score < 50) document.getElementById('score-circle').classList.replace('text-green-500', 'text-red-500');
+                else if(score < 80) document.getElementById('score-circle').classList.replace('text-green-500', 'text-yellow-500');
+            }, 100);
+        }
+
+    </script>
+</body>
+</html>
